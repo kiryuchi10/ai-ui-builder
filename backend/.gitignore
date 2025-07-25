@@ -1,0 +1,44 @@
+# === Python / Backend ===
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+*.sqlite3
+
+# FastAPI / Logs
+*.log
+
+# === Node / Frontend ===
+node_modules/
+dist/
+build/
+
+# Tailwind
+.pnp.*
+.pnp.js
+.next/
+.cache/
+
+# === Environment / Security ===
+.env
+*.env
+.env.*
+.env.local
+
+# === OS / Editor Files ===
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# === CI/CD ===
+coverage/
+*.egg-info/
+
+# === Large Files ===
+*.zip
+*.tar.gz
