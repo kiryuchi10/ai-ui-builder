@@ -11,8 +11,20 @@ from services.ai_orchestrator import AIOrchestrator
 from services.figma_tool import FigmaTool
 from services.github_tool import GitHubTool
 from services.render_tool import RenderTool
+from services.history_service import HistoryService
+from routes.history import router as history_router
+from routes.validation import router as validation_router
+from routes.components import router as components_router
+from routes.testing import router as testing_router
+from routes.export import router as export_router
+from database import init_database
 
 app = FastAPI(title="AI UI Builder API", version="1.0.0")
+
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    init_database()
 
 # CORS middleware
 app.add_middleware(
@@ -22,6 +34,13 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Include routers
+app.include_router(history_router)
+app.include_router(validation_router)
+app.include_router(components_router)
+app.include_router(testing_router)
+app.include_router(export_router)
 
 # Global state (in production, use Redis or database)
 generation_status = {}
@@ -50,6 +69,7 @@ figma_tool = FigmaTool()
 github_tool = GitHubTool()
 render_tool = RenderTool()
 orchestrator = AIOrchestrator(figma_tool, github_tool, render_tool)
+history_service = HistoryService()
 
 @app.get("/")
 async def root():
@@ -70,6 +90,22 @@ async def generate_ui(request: GenerationRequest, background_tasks: BackgroundTa
         "prompt": request.prompt,
         "results": {}
     }
+    
+    # Save to history database
+    from database import get_db
+    db = next(get_db())
+    try:
+        history_service.save_prompt_history(
+            db=db,
+            prompt=request.prompt,
+            user_id=request.user_id,
+            project_name=request.project_name,
+            job_id=job_id
+        )
+    except Exception as e:
+        print(f"Error saving to history: {e}")
+    finally:
+        db.close()
     
     # Start background task
     background_tasks.add_task(run_generation, job_id, request)
@@ -107,6 +143,8 @@ async def cancel_job(job_id: str):
 
 async def run_generation(job_id: str, request: GenerationRequest):
     """Background task to run the full generation pipeline"""
+    start_time = datetime.now()
+    
     try:
         await orchestrator.generate_ui(
             job_id=job_id,
@@ -117,9 +155,61 @@ async def run_generation(job_id: str, request: GenerationRequest):
         
         generation_status[job_id]["status"] = "completed"
         
+        # Update history with results
+        from database import get_db
+        db = next(get_db())
+        try:
+            generation_time = int((datetime.now() - start_time).total_seconds())
+            results = generation_status[job_id].get("results", {})
+            
+            # Find history entry by job_id and update it
+            from models.prompt_model import PromptHistory
+            history_entry = db.query(PromptHistory).filter(
+                PromptHistory.job_id == job_id
+            ).first()
+            
+            if history_entry:
+                history_service.update_prompt_history(
+                    db=db,
+                    history_id=history_entry.id,
+                    status="success",
+                    generation_time=generation_time,
+                    generated_code=results.get("code"),
+                    figma_url=results.get("figma_url"),
+                    github_repo=results.get("github_repo"),
+                    deploy_url=results.get("deploy_url"),
+                    ai_model_used="gpt-4",
+                    metadata=results
+                )
+        except Exception as e:
+            print(f"Error updating history: {e}")
+        finally:
+            db.close()
+        
     except Exception as e:
         generation_status[job_id]["status"] = "failed"
         generation_status[job_id]["error"] = str(e)
+        
+        # Update history with error
+        from database import get_db
+        db = next(get_db())
+        try:
+            from models.prompt_model import PromptHistory
+            history_entry = db.query(PromptHistory).filter(
+                PromptHistory.job_id == job_id
+            ).first()
+            
+            if history_entry:
+                history_service.update_prompt_history(
+                    db=db,
+                    history_id=history_entry.id,
+                    status="failed",
+                    metadata={"error": str(e)}
+                )
+        except Exception as update_error:
+            print(f"Error updating history with failure: {update_error}")
+        finally:
+            db.close()
 
 def update_status(job_id: str, step: int, step_name: str, data: Dict[str, Any]):
     """Update job status"""
