@@ -1,0 +1,8 @@
+{
+  "model_type": "pix2code",
+  "encoder": "cnn",
+  "decoder": "lstm",
+  "vocab_size": 1000,
+  "max_sequence_length": 512,
+  "embedding_dim": 256
+}

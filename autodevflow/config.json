@@ -1,0 +1,25 @@
+{
+  "version": "1.0.0",
+  "models": {
+    "maskrcnn_path": "autodevflow/models/maskrcnn/",
+    "pix2code_path": "autodevflow/models/pix2code/",
+    "codet5_path": "autodevflow/models/codet5/"
+  },
+  "output_dirs": {
+    "frontend": "services/frontend/",
+    "backend": "services/backend/"
+  },
+  "quality_thresholds": {
+    "min_score": 0.7,
+    "max_lint_errors": 5,
+    "max_complexity": 10
+  },
+  "integration": {
+    "backend_automation_enabled": true,
+    "papers_path": "C:\\Users\\user\\Documents\\GitHub\\backend-automation-paper2code\\Papers\\mypapers\\frontend"
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "autodevflow.log"
+  }
+}

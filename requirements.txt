@@ -1,0 +1,45 @@
+# Core dependencies
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+pydantic[email]==2.5.0
+python-multipart==0.0.6
+
+# Computer Vision
+opencv-python==4.8.1.78
+numpy==1.24.3
+Pillow==10.0.1
+
+# Machine Learning
+torch>=2.0.0
+torchvision>=0.15.0
+
+# OCR
+pytesseract==0.3.10
+
+# Code Quality
+flake8==6.1.0
+black==23.9.1
+mypy==1.6.1
+pylint==3.0.2
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+
+# Utilities
+python-dotenv==1.0.0
+pyyaml==6.0.1
+requests==2.31.0
+aiofiles==23.2.1
+
+# Database
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# Authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# Development
+jupyter==1.0.0
+ipython==8.16.1

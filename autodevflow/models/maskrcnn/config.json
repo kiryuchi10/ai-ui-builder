@@ -1,0 +1,23 @@
+{
+  "model_type": "maskrcnn",
+  "classes": [
+    "button",
+    "input",
+    "checkbox",
+    "radio",
+    "select",
+    "icon",
+    "image",
+    "text",
+    "navbar",
+    "list",
+    "table",
+    "card"
+  ],
+  "input_size": [
+    800,
+    800
+  ],
+  "confidence_threshold": 0.7,
+  "nms_threshold": 0.5
+}
